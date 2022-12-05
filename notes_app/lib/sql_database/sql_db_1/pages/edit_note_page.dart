@@ -103,6 +103,7 @@ class _AddEditNotePageState extends State<AddEditNotePage> {
       isImportant: true,
       number: number,
       description: description,
+      notebook: "notebook_hardcoded",
       createdTime: DateTime.now(),
     );
 

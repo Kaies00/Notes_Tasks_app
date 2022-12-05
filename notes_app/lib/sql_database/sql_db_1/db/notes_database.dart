@@ -37,6 +37,7 @@ CREATE TABLE $tableNotes (
   ${NoteFields.number} $integerType,
   ${NoteFields.title} $textType,
   ${NoteFields.description} $textType,
+  ${NoteFields.notebook} $textType,
   ${NoteFields.time} $textType
   )
 ''');
@@ -66,8 +67,10 @@ CREATE TABLE $tableNotes (
       where: '${NoteFields.id} = ?',
       whereArgs: [id],
     );
+    print(maps);
 
     if (maps.isNotEmpty) {
+      print("Future<Note> readNote(int id) async");
       return Note.fromJson(maps.first);
     } else {
       throw Exception('ID $id not found');

@@ -55,8 +55,8 @@ class _NotesPageState extends State<NotesPage> {
               ? const CircularProgressIndicator()
               : notes.isEmpty
                   ? Column(
-                      children: [
-                        const Text(
+                      children: const [
+                        Text(
                           'Add Your First Note',
                           style: TextStyle(color: Colors.purple, fontSize: 24),
                         ),
