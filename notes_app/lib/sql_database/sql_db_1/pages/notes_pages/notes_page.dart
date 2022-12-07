@@ -4,9 +4,9 @@ import 'package:staggered_grid_view_flutter/widgets/staggered_grid_view.dart';
 import 'package:staggered_grid_view_flutter/widgets/staggered_tile.dart';
 import 'package:notes_app/values.dart';
 
-import '../db/notes_database.dart';
-import '../model/note.dart';
-import '../widegt/note_card_widget.dart';
+import '../../db/notes_database.dart';
+import '../../model/note.dart';
+import '../../widegt/note_card_widget.dart';
 import 'edit_note_page.dart';
 import 'note_detail_page.dart';
 

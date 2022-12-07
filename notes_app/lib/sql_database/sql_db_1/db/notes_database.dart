@@ -2,6 +2,7 @@ import 'package:path/path.dart';
 import 'package:sqflite/sqflite.dart';
 
 import '../model/note.dart';
+import '../model/notebook.dart';
 
 class NotesDatabase {
   static final NotesDatabase instance = NotesDatabase._init();
@@ -41,6 +42,14 @@ CREATE TABLE $tableNotes (
   ${NoteFields.time} $textType
   )
 ''');
+    await db.execute('''
+CREATE TABLE $tableNotesBooks ( 
+  ${NoteBookFields.id} $idType, 
+  ${NoteBookFields.title} $textType,
+  ${NoteBookFields.image} $textType,
+  ${NoteFields.time} $textType
+  )
+''');
   }
 
   Future<Note> create(Note note) async {
@@ -58,6 +67,21 @@ CREATE TABLE $tableNotes (
     return note.copy(id: id);
   }
 
+  Future<NoteBook> createNoteBook(NoteBook noteBook) async {
+    final db = await instance.database;
+
+    // final json = note.toJson();
+    // final columns =
+    //     '${NoteFields.title}, ${NoteFields.description}, ${NoteFields.time}';
+    // final values =
+    //     '${json[NoteFields.title]}, ${json[NoteFields.description]}, ${json[NoteFields.time]}';
+    // final id = await db
+    //     .rawInsert('INSERT INTO table_name ($columns) VALUES ($values)');
+
+    final id = await db.insert(tableNotesBooks, noteBook.toJson());
+    return noteBook.copy(id: id);
+  }
+
   Future<Note> readNote(int id) async {
     final db = await instance.database;
 
@@ -70,8 +94,25 @@ CREATE TABLE $tableNotes (
     print(maps);
 
     if (maps.isNotEmpty) {
-      print("Future<Note> readNote(int id) async");
       return Note.fromJson(maps.first);
+    } else {
+      throw Exception('ID $id not found');
+    }
+  }
+
+  Future<NoteBook> readNoteBook(int id) async {
+    final db = await instance.database;
+
+    final maps = await db.query(
+      tableNotesBooks,
+      columns: NoteBookFields.values,
+      where: '${NoteBookFields.id} = ?',
+      whereArgs: [id],
+    );
+    print(maps);
+
+    if (maps.isNotEmpty) {
+      return NoteBook.fromJson(maps.first);
     } else {
       throw Exception('ID $id not found');
     }
@@ -89,6 +130,18 @@ CREATE TABLE $tableNotes (
     return result.map((json) => Note.fromJson(json)).toList();
   }
 
+  Future<List<NoteBook>> readAllNoteBooks() async {
+    final db = await instance.database;
+
+    final orderBy = '${NoteBookFields.time} ASC';
+    // final result =
+    //     await db.rawQuery('SELECT * FROM $tableNotes ORDER BY $orderBy');
+
+    final result = await db.query(tableNotesBooks, orderBy: orderBy);
+
+    return result.map((json) => NoteBook.fromJson(json)).toList();
+  }
+
   Future<int> update(Note note) async {
     final db = await instance.database;
 
@@ -100,12 +153,33 @@ CREATE TABLE $tableNotes (
     );
   }
 
+  Future<int> updateNoteBook(NoteBook noteBook) async {
+    final db = await instance.database;
+
+    return db.update(
+      tableNotesBooks,
+      noteBook.toJson(),
+      where: '${NoteFields.id} = ?',
+      whereArgs: [noteBook.id],
+    );
+  }
+
   Future<int> delete(int id) async {
     final db = await instance.database;
 
     return await db.delete(
       tableNotes,
       where: '${NoteFields.id} = ?',
+      whereArgs: [id],
+    );
+  }
+
+  Future<int> deleteNoteBokk(int id) async {
+    final db = await instance.database;
+
+    return await db.delete(
+      tableNotesBooks,
+      where: '${NoteBookFields.id} = ?',
       whereArgs: [id],
     );
   }
