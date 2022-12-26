@@ -51,7 +51,7 @@ class _NoteDetailPageState extends State<NoteDetailPage> {
                     Text(
                       note.title,
                       style: const TextStyle(
-                        color: Colors.white,
+                        color: Colors.black,
                         fontSize: 22,
                         fontWeight: FontWeight.bold,
                       ),
@@ -59,13 +59,19 @@ class _NoteDetailPageState extends State<NoteDetailPage> {
                     const SizedBox(height: 8),
                     Text(
                       DateFormat.yMMMd().format(note.createdTime),
-                      style: const TextStyle(color: Colors.white38),
+                      style: const TextStyle(color: Colors.black26),
                     ),
                     const SizedBox(height: 8),
                     Text(
                       note.description,
                       style:
-                          const TextStyle(color: Colors.white70, fontSize: 18),
+                          const TextStyle(color: Colors.black45, fontSize: 18),
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      note.notebook,
+                      style:
+                          const TextStyle(color: Colors.black45, fontSize: 18),
                     )
                   ],
                 ),

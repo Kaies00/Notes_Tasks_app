@@ -4,6 +4,8 @@ import 'package:flutter/src/widgets/framework.dart';
 
 import 'package:notes_app/sql_database/sql_db_1/model/notebook.dart';
 
+import '../../../../values.dart';
+
 class NoteBookCardWidget extends StatelessWidget {
   final NoteBook noteBook;
   final int index;
@@ -17,17 +19,31 @@ class NoteBookCardWidget extends StatelessWidget {
   Widget build(BuildContext context) {
     Size _size = MediaQuery.of(context).size;
     return Container(
-      width: _size.width / 2,
-      height: _size.height / 3,
+      margin: EdgeInsets.all(5),
+      width: _size.width / 2 - 30,
+      height: _size.height / 5,
+      decoration: BoxDecoration(
+        color: accentPinkColor,
+        borderRadius: BorderRadius.circular(10),
+      ),
       child: Column(
         children: [
-          Container(
-            height: (_size.height / 3) - 30,
-            decoration: BoxDecoration(
-              image: DecorationImage(image: AssetImage(noteBook.image)),
+          Hero(
+            tag: noteBook.image,
+            child: Container(
+              height: (_size.height / 5) - 30,
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(10),
+                image: DecorationImage(
+                    image: AssetImage(noteBook.image), fit: BoxFit.contain),
+              ),
             ),
           ),
-          Text(noteBook.title),
+          Text(
+            noteBook.title,
+            style: TextStyle(
+                fontFamily: "Valid_Harmony", fontSize: 20, color: plumColor),
+          ),
         ],
       ),
     );

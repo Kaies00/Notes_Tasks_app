@@ -42,41 +42,58 @@ class _NoteBooksPagesState extends State<NoteBooksPages> {
   }
 
   @override
-  Widget build(BuildContext context) => Scaffold(
-        appBar: AppBar(
-          title: const Text(
-            'notebooks',
-            style: const TextStyle(fontSize: 24),
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: accentPinkColor,
+      appBar: AppBar(
+        leading: Icon(
+          Icons.menu,
+          color: plumColor,
+        ),
+        backgroundColor: accentPinkColor,
+        elevation: 0,
+        title: Center(
+          child: Text(
+            'Note Books',
+            style: TextStyle(
+                fontSize: 35, color: plumColor, fontFamily: "Valid_Harmony"),
           ),
-          actions: [const Icon(Icons.search), const SizedBox(width: 12)],
         ),
-        body: Center(
-          child: isLoading
-              ? const CircularProgressIndicator()
-              : notebooks.isEmpty
-                  ? Column(
-                      children: const [
-                        Text(
-                          'Add Your First NoteBook',
-                          style: TextStyle(color: Colors.purple, fontSize: 24),
-                        ),
-                      ],
-                    )
-                  : buildNoteBooks(),
-        ),
-        floatingActionButton: FloatingActionButton(
-          backgroundColor: Colors.black,
-          child: const Icon(Icons.add),
-          onPressed: () async {
-            await Navigator.of(context).push(
-              MaterialPageRoute(
-                  builder: (context) => const AddEditNoteBookPage()),
-            );
+        actions: [
+          GestureDetector(
+            onTap: () async {
+              await Navigator.of(context).push(
+                MaterialPageRoute(
+                    builder: (context) => const AddEditNoteBookPage()),
+              );
 
-            refreshNoteBooks();
-          },
-        ),
-      );
+              refreshNoteBooks();
+            },
+            child: Icon(
+              Icons.add,
+              size: 32,
+              color: plumColor,
+            ),
+          ),
+          const SizedBox(width: 12)
+        ],
+      ),
+      body: Center(
+        child: isLoading
+            ? const CircularProgressIndicator()
+            : notebooks.isEmpty
+                ? Column(
+                    children: const [
+                      Text(
+                        'Add Your First NoteBook',
+                        style: TextStyle(color: Colors.purple, fontSize: 24),
+                      ),
+                    ],
+                  )
+                : buildNoteBooks(),
+      ),
+    );
+  }
 
   Widget buildNoteBooks() => StaggeredGridView.countBuilder(
         padding: const EdgeInsets.all(8),

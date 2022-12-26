@@ -121,7 +121,7 @@ CREATE TABLE $tableNotesBooks (
   Future<List<Note>> readAllNotes() async {
     final db = await instance.database;
 
-    final orderBy = '${NoteFields.time} ASC';
+    final orderBy = '${NoteFields.time} DESC';
     // final result =
     //     await db.rawQuery('SELECT * FROM $tableNotes ORDER BY $orderBy');
 
@@ -133,7 +133,7 @@ CREATE TABLE $tableNotesBooks (
   Future<List<NoteBook>> readAllNoteBooks() async {
     final db = await instance.database;
 
-    final orderBy = '${NoteBookFields.time} ASC';
+    final orderBy = '${NoteBookFields.time} DESC';
     // final result =
     //     await db.rawQuery('SELECT * FROM $tableNotes ORDER BY $orderBy');
 
@@ -174,7 +174,7 @@ CREATE TABLE $tableNotesBooks (
     );
   }
 
-  Future<int> deleteNoteBokk(int id) async {
+  Future<int> deleteNoteBook(int id) async {
     final db = await instance.database;
 
     return await db.delete(

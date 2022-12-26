@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:notes_app/sql_database/sql_db_1/model/notebook.dart';
 
 import '../../db/notes_database.dart';
 import '../../model/note.dart';
@@ -6,10 +7,12 @@ import '../../widegt/note_form_widget.dart';
 
 class AddEditNotePage extends StatefulWidget {
   final Note? note;
+  final NoteBook? noteBook;
 
   const AddEditNotePage({
     Key? key,
     this.note,
+    this.noteBook,
   }) : super(key: key);
   @override
   _AddEditNotePageState createState() => _AddEditNotePageState();
@@ -21,6 +24,7 @@ class _AddEditNotePageState extends State<AddEditNotePage> {
   late int number;
   late String title;
   late String description;
+  late String notebook;
 
   @override
   void initState() {
@@ -30,6 +34,7 @@ class _AddEditNotePageState extends State<AddEditNotePage> {
     number = widget.note?.number ?? 0;
     title = widget.note?.title ?? '';
     description = widget.note?.description ?? '';
+    notebook = widget.noteBook?.title ?? '';
   }
 
   @override
@@ -103,7 +108,7 @@ class _AddEditNotePageState extends State<AddEditNotePage> {
       isImportant: true,
       number: number,
       description: description,
-      notebook: "notebook_hardcoded",
+      notebook: notebook,
       createdTime: DateTime.now(),
     );
 
