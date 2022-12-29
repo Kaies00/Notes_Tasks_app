@@ -9,4 +9,5 @@ const Color fColor = Color(0xff3B4F8C);
 const Color accentPinkColor = Color(0xffFDE1EF);
 Color backgroundColor = const Color(0xffEE9DC4);
 const Color pinkColor = Color(0xffEE9DC4);
-Color plumColor = const Color(0xff701B71);
+const Color plumColor = Color(0xff701B71);
+const Color antiFlashWhite = Color(0xffF2EDEA);

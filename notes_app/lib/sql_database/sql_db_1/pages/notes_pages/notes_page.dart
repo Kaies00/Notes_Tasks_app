@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:notes_app/values.dart';
 import 'package:staggered_grid_view_flutter/widgets/staggered_grid_view.dart';
 import 'package:staggered_grid_view_flutter/widgets/staggered_tile.dart';
-import 'package:notes_app/values.dart';
 
 import '../../db/notes_database.dart';
 import '../../model/note.dart';

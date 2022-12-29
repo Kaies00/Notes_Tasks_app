@@ -1,9 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:notes_app/sql_database/sql_db_1/model/notebook.dart';
-
+import '../../../../values.dart';
 import '../../db/notes_database.dart';
-import '../../model/note.dart';
-import '../../widegt/note_form_widget.dart';
 
 class AddEditNoteBookPage extends StatefulWidget {
   final NoteBook? noteBook;
@@ -21,27 +19,62 @@ class _AddEditNoteBookPageState extends State<AddEditNoteBookPage>
   late Animation<double> animation;
   late AnimationController animationController;
   final List<String> _noteBooksPics = [
-    "assets/images/bk1.JPG",
-    "assets/images/bk2.JPG",
-    "assets/images/bk3.JPG",
-    "assets/images/bk4.JPG",
-    "assets/images/bk5.JPG",
-    "assets/images/bk6.JPG",
-    "assets/images/bk7.JPG",
-    "assets/images/bk8.JPG",
-    "assets/images/bk9.JPG",
-    "assets/images/3d1.png",
-    "assets/images/3d2.webp",
-    "assets/images/3d3.jpg",
-    "assets/images/3d4.webp",
-    "assets/images/3d6.webp",
-    "assets/images/3d7.webp",
-    "assets/images/3d8.png",
-    "assets/images/3d9.png",
-    "assets/images/3d10.png",
-    "assets/images/3d11.png",
-    "assets/images/3d12.jpg",
-    "assets/images/3d13.jpg",
+    "assets/images/icon3d1.png",
+    "assets/images/icon3d2.png",
+    "assets/images/icon3d3.png",
+    "assets/images/icon3d4.png",
+    "assets/images/icon3d5.png",
+    "assets/images/icon3d6.png",
+    "assets/images/icon3d7.png",
+    "assets/images/icon3d8.png",
+    "assets/images/icon3d9.png",
+    "assets/images/icon3d10.png",
+    "assets/images/icon3d11.png",
+    "assets/images/icon3d12.png",
+    "assets/images/icon3d13.png",
+    "assets/images/icon3d14.png",
+    "assets/images/icon3d15.png",
+    "assets/images/icon3d16.png",
+    "assets/images/icon3d17.png",
+    "assets/images/icon3d18.png",
+    "assets/images/icon3d19.png",
+    "assets/images/icon3d20.png",
+    "assets/images/icon3d21.png",
+    "assets/images/icon3d22.png",
+    "assets/images/icon3d23.png",
+    "assets/images/icon3d24.png",
+    "assets/images/icon3d25.png",
+    "assets/images/icon3d26.png",
+    "assets/images/icon3d27.png",
+    "assets/images/icon3d28.png",
+    "assets/images/icon3d29.png",
+    "assets/images/icon3d30.png",
+    "assets/images/icon3d31.png",
+    "assets/images/icon3d32.png",
+    "assets/images/icon3d33.png",
+    "assets/images/icon3d34.png",
+    "assets/images/icon3d35.png",
+    "assets/images/icon3d36.png",
+    "assets/images/icon3d37.png",
+    "assets/images/icon3d38.png",
+    "assets/images/icon3d39.png",
+    "assets/images/icon3d40.png",
+    "assets/images/icon3d41.png",
+    "assets/images/icon3d42.png",
+    "assets/images/icon3d43.png",
+    "assets/images/icon3d44.png",
+    "assets/images/icon3d45.png",
+    "assets/images/icon3d46.png",
+    "assets/images/icon3d47.png",
+    "assets/images/icon3d48.png",
+    "assets/images/icon3d49.png",
+    "assets/images/icon3d50.png",
+    "assets/images/icon3d51.png",
+    "assets/images/icon3d52.png",
+    "assets/images/icon3d53.png",
+    "assets/images/icon3d54.png",
+    "assets/images/icon3d55.png",
+    "assets/images/icon3d56.png"
   ];
   final _formKey = GlobalKey<FormState>();
   late String title;
@@ -66,7 +99,6 @@ class _AddEditNoteBookPageState extends State<AddEditNoteBookPage>
 
   @override
   void dispose() {
-    // TODO: implement dispose
     animationController.dispose();
     super.dispose();
   }
@@ -75,7 +107,11 @@ class _AddEditNoteBookPageState extends State<AddEditNoteBookPage>
   Widget build(BuildContext context) {
     Size _size = MediaQuery.of(context).size;
     return Scaffold(
+      backgroundColor: accentPinkColor,
       appBar: AppBar(
+        backgroundColor: accentPinkColor,
+        foregroundColor: pinkColor,
+        elevation: 0,
         actions: [buildButton()],
       ),
       body: Container(
@@ -120,7 +156,7 @@ class _AddEditNoteBookPageState extends State<AddEditNoteBookPage>
                       decoration: BoxDecoration(
                           image: DecorationImage(
                               image: AssetImage(image), fit: BoxFit.contain),
-                          color: Colors.amber,
+                          color: Colors.pink.shade100,
                           borderRadius: BorderRadius.circular(15)),
                     ),
             ),
@@ -190,7 +226,7 @@ class _AddEditNoteBookPageState extends State<AddEditNoteBookPage>
                         decoration: BoxDecoration(
                             image: DecorationImage(
                                 image: AssetImage(_noteBooksPics[index])),
-                            color: Colors.amber,
+                            color: accentPinkColor,
                             borderRadius: BorderRadius.circular(15)),
                         // child: Image(
                         //   image: AssetImage(_noteBooksPics[index]),
@@ -212,7 +248,7 @@ class _AddEditNoteBookPageState extends State<AddEditNoteBookPage>
       child: ElevatedButton(
         style: ElevatedButton.styleFrom(
           onPrimary: Colors.white,
-          primary: isFormValid ? null : Colors.grey.shade700,
+          primary: isFormValid ? pinkColor : Colors.grey.shade700,
         ),
         onPressed: addOrUpdateNoteBook,
         child: Text('Save'),

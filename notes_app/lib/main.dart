@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:notes_app/sql_database/sql_db_1/pages/notebooks_pages/notebooks_page.dart';
-import 'package:notes_app/sql_database/sql_db_1/pages/notes_pages/notes_page.dart';
 import 'package:notes_app/values.dart';
-import 'screens/my_home_page.dart';
 
 void main() {
   WidgetsBinding widgetsBinding = WidgetsFlutterBinding.ensureInitialized();

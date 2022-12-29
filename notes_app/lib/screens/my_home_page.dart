@@ -10,18 +10,18 @@ class MyHomePage extends StatelessWidget {
     return Scaffold(
       backgroundColor: accentPinkColor,
       appBar: AppBar(
-          title: Center(
+          title: const Center(
               child: Text(
             "My NoteBooks",
             style: TextStyle(color: plumColor),
           )),
           elevation: 0,
           backgroundColor: accentPinkColor,
-          leading: Icon(
+          leading: const Icon(
             Icons.menu,
             color: pinkColor,
           ),
-          actions: [
+          actions: const [
             Icon(
               Icons.add,
               color: pinkColor,

@@ -126,7 +126,9 @@ CREATE TABLE $tableNotesBooks (
     //     await db.rawQuery('SELECT * FROM $tableNotes ORDER BY $orderBy');
 
     final result = await db.query(tableNotes, orderBy: orderBy);
-
+    print("__________________readAllNotes_______________");
+    print(result);
+    print("______________________________________________");
     return result.map((json) => Note.fromJson(json)).toList();
   }
 

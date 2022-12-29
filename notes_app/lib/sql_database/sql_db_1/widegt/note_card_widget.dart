@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 
 import '../model/note.dart';
@@ -33,34 +34,54 @@ class NoteCardWidget extends StatelessWidget {
       color: color,
       child: Container(
         constraints: BoxConstraints(minHeight: minHeight),
-        padding: EdgeInsets.all(8),
+        padding: const EdgeInsets.all(8),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(
-              time,
-              style: TextStyle(color: Colors.grey.shade700),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  time,
+                  style: TextStyle(color: Colors.grey.shade700),
+                ),
+                Icon(
+                  Icons.star,
+                  size: 20,
+                  color: note.isImportant ? Colors.amber : Colors.grey.shade300,
+                  shadows: <Shadow>[
+                    Shadow(
+                      blurRadius: 5.0,
+                      color: Colors.white,
+                    ),
+                    Shadow(
+                      offset: Offset(0.0, 0.0),
+                      blurRadius: 8.0,
+                      color: Colors.white,
+                    ),
+                  ],
+                )
+              ],
             ),
-            SizedBox(height: 4),
+            const SizedBox(height: 4),
             Text(
               note.title,
-              style: const TextStyle(
-                  color: Colors.black,
-                  fontSize: 20,
-                  fontWeight: FontWeight.bold,
-                  fontFamily: "Valid_Harmony"),
+              style: GoogleFonts.courgette(
+                color: Color(0xff701B71),
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+              ),
             ),
-            SizedBox(height: 4),
+            const SizedBox(height: 4),
             Text(
               note.description,
               maxLines: minHeight == 100 ? 2 : 4,
               overflow: TextOverflow.ellipsis,
-              style: const TextStyle(
-                  color: Colors.black,
-                  fontSize: 20,
-                  fontWeight: FontWeight.normal,
-                  fontFamily: "Valid_Harmony"),
+              style: GoogleFonts.courgette(
+                  color: Color.fromARGB(255, 62, 4, 71),
+                  fontSize: 15,
+                  fontWeight: FontWeight.normal),
             ),
           ],
         ),

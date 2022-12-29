@@ -1,6 +1,5 @@
 import 'package:flutter/cupertino.dart';
-import 'package:flutter/src/foundation/key.dart';
-import 'package:flutter/src/widgets/framework.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 import 'package:notes_app/sql_database/sql_db_1/model/notebook.dart';
 
@@ -19,7 +18,7 @@ class NoteBookCardWidget extends StatelessWidget {
   Widget build(BuildContext context) {
     Size _size = MediaQuery.of(context).size;
     return Container(
-      margin: EdgeInsets.all(5),
+      margin: const EdgeInsets.all(5),
       width: _size.width / 2 - 30,
       height: _size.height / 5,
       decoration: BoxDecoration(
@@ -41,8 +40,7 @@ class NoteBookCardWidget extends StatelessWidget {
           ),
           Text(
             noteBook.title,
-            style: TextStyle(
-                fontFamily: "Valid_Harmony", fontSize: 20, color: plumColor),
+            style: GoogleFonts.courgette(fontSize: 20, color: plumColor),
           ),
         ],
       ),
