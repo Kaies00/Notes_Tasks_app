@@ -35,6 +35,8 @@ class NotesDatabase {
 CREATE TABLE $tableNotes ( 
   ${NoteFields.id} $idType, 
   ${NoteFields.isImportant} $boolType,
+  ${NoteFields.isTask} $boolType,
+  ${NoteFields.isCompleted} $boolType,
   ${NoteFields.number} $integerType,
   ${NoteFields.title} $textType,
   ${NoteFields.description} $textType,

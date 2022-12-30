@@ -229,9 +229,10 @@ class _NoteBooksPagesState extends State<NoteBooksPages>
                 ? const Center(child: CircularProgressIndicator())
                 : Expanded(
                     child: TabBarView(controller: _tabController, children: [
-                      isListView
-                          ? buildListViewAllNotesAnimated(_size)
-                          : buildStaggeredGridViewAllNotesAnimated(),
+                      // isListView
+                      //     ? buildListViewAllNotesAnimated(_size)
+                      //     : buildStaggeredGridViewAllNotesAnimated(),
+                      buildNotesPage(_size),
                       buildNoteBooksPage()
                     ]),
                   ),
@@ -248,15 +249,46 @@ class _NoteBooksPagesState extends State<NoteBooksPages>
           : notebooks.isEmpty
               ? Center(
                   child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       Text('Add Your First NoteBook',
                           // style: TextStyle(),
                           style: GoogleFonts.courgette(
-                              color: Colors.purple, fontSize: 24)),
+                              color: pinkColor, fontSize: 24)),
+                      Text('Tap \'+\' button in top right',
+                          // style: TextStyle(),
+                          style: GoogleFonts.courgette(
+                              color: pinkColor, fontSize: 20)),
                     ],
                   ),
                 )
               : buildNoteBooks(),
+    );
+  }
+
+  Widget buildNotesPage(size) {
+    return Center(
+      child: isLoading
+          ? const CircularProgressIndicator()
+          : notes.isEmpty
+              ? Center(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Text('Add Your First Note or Task',
+                          // style: TextStyle(),
+                          style: GoogleFonts.courgette(
+                              color: pinkColor, fontSize: 24)),
+                      Text('Tap \'+\' button in top right',
+                          // style: TextStyle(),
+                          style: GoogleFonts.courgette(
+                              color: pinkColor, fontSize: 20)),
+                    ],
+                  ),
+                )
+              : isListView
+                  ? buildListViewAllNotesAnimated(size)
+                  : buildStaggeredGridViewAllNotesAnimated(),
     );
   }
 

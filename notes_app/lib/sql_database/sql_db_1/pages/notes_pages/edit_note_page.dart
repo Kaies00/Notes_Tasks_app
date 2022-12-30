@@ -23,17 +23,23 @@ class AddEditNotePage extends StatefulWidget {
 class _AddEditNotePageState extends State<AddEditNotePage> {
   final _formKey = GlobalKey<FormState>();
   late bool isImportant;
+  late bool isTask;
+  late bool isCompleted;
   late int number;
   late String title;
   late String description;
   late String notebook;
   TextEditingController titleController = TextEditingController();
   TextEditingController noteController = TextEditingController();
+  double _xOffset = 0;
+  int _duartion = 200;
   @override
   void initState() {
     super.initState();
 
     isImportant = widget.note?.isImportant ?? false;
+    isTask = widget.note?.isTask ?? false;
+    isCompleted = widget.note?.isCompleted ?? false;
     number = widget.note?.number ?? 0;
     title = widget.note?.title ?? '';
     description = widget.note?.description ?? '';
@@ -43,6 +49,7 @@ class _AddEditNotePageState extends State<AddEditNotePage> {
 
   @override
   Widget build(BuildContext context) {
+    Size _size = MediaQuery.of(context).size;
     return Scaffold(
       backgroundColor: accentPinkColor,
       appBar: AppBar(
@@ -59,6 +66,8 @@ class _AddEditNotePageState extends State<AddEditNotePage> {
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
+                buildChoiceButon(_size),
+                const SizedBox(height: 8),
                 // Row(
                 //   children: [
                 //     Switch(
@@ -136,7 +145,9 @@ class _AddEditNotePageState extends State<AddEditNotePage> {
 
   Future updateNote() async {
     final note = widget.note!.copy(
+      isTask: isTask,
       isImportant: isImportant,
+      isCompleted: isCompleted,
       number: number,
       title: title,
       description: description,
@@ -149,6 +160,8 @@ class _AddEditNotePageState extends State<AddEditNotePage> {
     final note = Note(
       title: title == '' ? titleController.text : title,
       isImportant: false,
+      isTask: isTask,
+      isCompleted: isCompleted,
       number: number,
       description: description,
       notebook: notebook,
@@ -192,9 +205,106 @@ class _AddEditNotePageState extends State<AddEditNotePage> {
           setState(() {
             description = dsc;
             if (title == '') {
-              titleController.text = dsc.split(" ")[0];
+              // titleController.text = dsc.split(" ")[0];
+              titleController.text = (dsc.split("\n")[0]).split(" ")[0];
             }
           });
         },
+      );
+  Widget buildChoiceButon(size) => Container(
+        width: double.infinity,
+        height: 50,
+        decoration: BoxDecoration(
+          color: Color(0xffffced9),
+          borderRadius: BorderRadius.circular(5),
+        ),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Stack(
+              children: [
+                Container(
+                  height: 48,
+                  width: (size.width / 2) - 16,
+                  decoration: const BoxDecoration(
+                      // color: Colors.amber.withOpacity(0.2),
+                      // boxShadow: [
+                      //   BoxShadow(
+                      //     blurRadius: 10.0,
+                      //     color: pinkColor,
+                      //   ),
+                      //   BoxShadow(
+                      //     offset: Offset(0.0, 0.0),
+                      //     blurRadius: 8.0,
+                      //     color: pinkColor,
+                      //   ),
+                      // ],
+                      ),
+                ),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceAround,
+                  children: [
+                    Expanded(
+                      child: GestureDetector(
+                        onTap: (() {
+                          setState(() {
+                            isTask = false;
+                          });
+                        }),
+                        child: Container(
+                          height: 48,
+                          child: Center(
+                            child: Text(
+                              "Note",
+                              style: GoogleFonts.courgette(
+                                  color: pinkColor, fontSize: 22),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                    Expanded(
+                      child: GestureDetector(
+                        onTap: (() {
+                          setState(() {
+                            isTask = true;
+                          });
+                        }),
+                        child: Container(
+                          height: 48,
+                          child: Center(
+                            child: Text(
+                              "Task",
+                              style: GoogleFonts.courgette(
+                                  color: pinkColor, fontSize: 22),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+            TweenAnimationBuilder(
+              duration: const Duration(milliseconds: 300),
+              tween: Tween<Offset>(
+                  begin: const Offset(0, 0),
+                  end: Offset(isTask ? (size.width / 2) - 16 : 0, 0.0)),
+              builder: (BuildContext context, Offset value, Widget? child) {
+                Size s = MediaQuery.of(context).size;
+                return Transform.translate(
+                  offset: value,
+                  child: Container(
+                    color: Colors.amber,
+                    height: 2,
+                    width: (s.width / 2) - 16,
+                  ),
+                );
+              },
+            ),
+          ],
+        ),
       );
 }
