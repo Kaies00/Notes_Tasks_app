@@ -1,6 +1,7 @@
 import 'package:automatic_animated_list/automatic_animated_list.dart';
 import 'package:complete_timer/complete_timer.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_staggered_animations/flutter_staggered_animations.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
@@ -30,17 +31,32 @@ class _NoteBooksPagesState extends State<NoteBooksPages>
   late List<NoteBook> notebooks;
   late List<Note> notes;
   late List<Note> sortedNotes;
+  late Note _selectedNote;
   double h = 0;
+  double noteModifHeigher = 0;
   bool isLoading = false;
   bool isListView = true;
   bool isImportant = true;
+  bool modifTabIsClosed = true;
+  bool noteEditMode = false;
   late CompleteTimer normalTimer;
 
   @override
   void initState() {
     super.initState();
+    SystemChrome.setEnabledSystemUIMode(SystemUiMode.manual,
+        overlays: [SystemUiOverlay.top]);
     _tabController = TabController(vsync: this, length: 2);
     refreshNoteBooks();
+    _selectedNote = Note(
+        isImportant: false,
+        isTask: false,
+        isCompleted: false,
+        number: 0,
+        title: "",
+        description: "description",
+        notebook: "",
+        createdTime: DateTime.now());
     normalTimer = CompleteTimer(
       // must a non-negative Duration.
       duration: const Duration(seconds: 3),
@@ -56,6 +72,8 @@ class _NoteBooksPagesState extends State<NoteBooksPages>
         timer.stop();
         setState(() {
           h = 0;
+          noteModifHeigher = 0;
+          noteEditMode = false;
         });
       },
     );
@@ -267,28 +285,122 @@ class _NoteBooksPagesState extends State<NoteBooksPages>
   }
 
   Widget buildNotesPage(size) {
-    return Center(
-      child: isLoading
-          ? const CircularProgressIndicator()
-          : notes.isEmpty
-              ? Center(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Text('Add Your First Note or Task',
-                          // style: TextStyle(),
-                          style: GoogleFonts.courgette(
-                              color: pinkColor, fontSize: 24)),
-                      Text('Tap \'+\' button in top right',
-                          // style: TextStyle(),
-                          style: GoogleFonts.courgette(
-                              color: pinkColor, fontSize: 20)),
-                    ],
-                  ),
-                )
-              : isListView
-                  ? buildListViewAllNotesAnimated(size)
-                  : buildStaggeredGridViewAllNotesAnimated(),
+    return Column(
+      children: [
+        notes.isEmpty
+            ? Container()
+            : AnimatedContainer(
+                duration: const Duration(seconds: 1),
+                curve: Curves.fastOutSlowIn,
+                height: noteModifHeigher,
+                color: accentPinkColor,
+                onEnd: (() {
+                  setState(() {
+                    modifTabIsClosed = !modifTabIsClosed;
+                  });
+                }),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  children: [
+                    // if (!modifTabIsClosed || noteModifHeigher > 0)
+                    IconButton(
+                        icon: const Icon(
+                          Icons.edit_outlined,
+                          color: pinkColor,
+                        ),
+                        onPressed: () async {
+                          setState(() {
+                            noteModifHeigher = 0;
+                          });
+                          if (isLoading) return;
+                          await Navigator.of(context).push(MaterialPageRoute(
+                            builder: (context) =>
+                                AddEditNotePage(note: _selectedNote),
+                          ));
+                          refreshNoteBooks();
+                        }),
+                    VerticalDivider(),
+                    // if (!modifTabIsClosed || noteModifHeigher > 0)
+                    IconButton(
+                      icon: const Icon(
+                        Icons.star_border_outlined,
+                        color: pinkColor,
+                      ),
+                      onPressed: (() async {
+                        setState(() {
+                          noteModifHeigher = 0;
+                          isImportant = !_selectedNote.isImportant;
+                        });
+                        final nt = _selectedNote.copy(
+                          isImportant: isImportant,
+                        );
+                        await NotesDatabase.instance.update(nt);
+                        refreshNoteBooks();
+                      }),
+                    ),
+                    if (_selectedNote.isTask) VerticalDivider(),
+                    if (_selectedNote.isTask)
+                      IconButton(
+                        icon: const Icon(
+                          Icons.check,
+                          color: pinkColor,
+                        ),
+                        onPressed: (() async {
+                          setState(() {
+                            noteModifHeigher = 0;
+                            isImportant = !_selectedNote.isImportant;
+                          });
+                          final nt = _selectedNote.copy(
+                            isImportant: isImportant,
+                          );
+                          await NotesDatabase.instance.update(nt);
+                          refreshNoteBooks();
+                        }),
+                      ),
+                    VerticalDivider(),
+                    // if (!modifTabIsClosed || noteModifHeigher > 0)
+                    IconButton(
+                      icon: const Icon(
+                        Icons.delete,
+                        color: pinkColor,
+                      ),
+                      onPressed: () async {
+                        setState(() {
+                          noteModifHeigher = 0;
+                        });
+                        await NotesDatabase.instance.delete(_selectedNote.id!);
+                        refreshNoteBooks();
+                      },
+                    ),
+                  ],
+                ),
+              ),
+        Expanded(
+          child: Center(
+            child: isLoading
+                ? const CircularProgressIndicator()
+                : notes.isEmpty
+                    ? Center(
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Text('Add Your First Note or Task',
+                                // style: TextStyle(),
+                                style: GoogleFonts.courgette(
+                                    color: pinkColor, fontSize: 24)),
+                            Text('Tap \'+\' button in top right',
+                                // style: TextStyle(),
+                                style: GoogleFonts.courgette(
+                                    color: pinkColor, fontSize: 20)),
+                          ],
+                        ),
+                      )
+                    : isListView
+                        ? buildListViewAllNotesAnimated(size)
+                        : buildStaggeredGridViewAllNotesAnimated(),
+          ),
+        ),
+      ],
     );
   }
 
@@ -428,6 +540,17 @@ class _NoteBooksPagesState extends State<NoteBooksPages>
                   reverseCurve: Curves.easeIn,
                 ),
                 child: GestureDetector(
+                  onLongPress: (() {
+                    setState(() {
+                      noteModifHeigher == 50
+                          ? noteModifHeigher = 0
+                          : noteModifHeigher = 50;
+                      _selectedNote = item;
+                      noteEditMode = !noteEditMode;
+                      // modifTabIsClosed = !modifTabIsClosed;
+                      normalTimer.start();
+                    });
+                  }),
                   onDoubleTap: () async {
                     setState(() {
                       isImportant = !note.isImportant;
@@ -456,8 +579,12 @@ class _NoteBooksPagesState extends State<NoteBooksPages>
                           padding: const EdgeInsets.all(15),
                           width: double.infinity,
                           decoration: BoxDecoration(
-                              color: Colors.white,
-                              borderRadius: BorderRadius.circular(5)),
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(5),
+                            // border: _selectedNote.id == note.id && noteEditMode
+                            //     ? Border.all(color: Colors.red)
+                            //     : null,
+                          ),
                           height: size.height / 7,
                           child: Column(
                             mainAxisAlignment: MainAxisAlignment.start,
@@ -465,13 +592,35 @@ class _NoteBooksPagesState extends State<NoteBooksPages>
                             children: [
                               Text(DateFormat.yMMMd().format(note.createdTime)),
                               const SizedBox(height: 4),
-                              Text(
-                                note.title,
-                                style: GoogleFonts.courgette(
-                                  color: const Color(0xff701B71),
-                                  fontSize: 20,
-                                  fontWeight: FontWeight.bold,
-                                ),
+                              Row(
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceBetween,
+                                children: [
+                                  Text(
+                                    note.title,
+                                    style: GoogleFonts.courgette(
+                                      color: const Color(0xff701B71),
+                                      fontSize: 20,
+                                      fontWeight: FontWeight.bold,
+                                      decoration: note.isCompleted
+                                          ? TextDecoration.lineThrough
+                                          : TextDecoration.none,
+                                    ),
+                                  ),
+                                  note.isTask
+                                      ? note.isCompleted
+                                          ? Icon(
+                                              Icons
+                                                  .check_box_outline_blank_rounded,
+                                              color:
+                                                  Colors.green.withOpacity(0.8))
+                                          : Icon(
+                                              Icons.check_box_outline_blank,
+                                              color:
+                                                  Colors.pink.withOpacity(0.2),
+                                            )
+                                      : Container(),
+                                ],
                               ),
                               const SizedBox(height: 4),
                               Text(
@@ -564,54 +713,66 @@ class _NoteBooksPagesState extends State<NoteBooksPages>
   }
 
   Widget buildStaggeredGridViewAllNotesAnimated() {
-    return RefreshIndicator(
-      onRefresh: () async {
-        setState(() {
-          h = 50;
-          normalTimer.start();
-          refreshNoteBooks();
-        });
-      },
-      child: AnimationLimiter(
-        child: StaggeredGridView.countBuilder(
-          padding: const EdgeInsets.all(0),
-          itemCount: notes.length,
-          staggeredTileBuilder: (index) => const StaggeredTile.fit(2),
-          crossAxisCount: 4,
-          mainAxisSpacing: 4,
-          crossAxisSpacing: 4,
-          itemBuilder: (context, index) {
-            final note = notes[index];
+    return Container(
+      color: accentPinkColor,
+      child: RefreshIndicator(
+        onRefresh: () async {
+          setState(() {
+            h = 50;
+            normalTimer.start();
+            refreshNoteBooks();
+          });
+        },
+        child: AnimationLimiter(
+          child: StaggeredGridView.countBuilder(
+            padding: const EdgeInsets.all(0),
+            itemCount: notes.length,
+            staggeredTileBuilder: (index) => const StaggeredTile.fit(2),
+            crossAxisCount: 4,
+            mainAxisSpacing: 4,
+            crossAxisSpacing: 4,
+            itemBuilder: (context, index) {
+              final note = notes[index];
 
-            return AnimationConfiguration.staggeredGrid(
-              position: index,
-              duration: const Duration(milliseconds: 375),
-              columnCount: 2,
-              child: ScaleAnimation(
-                child: FadeInAnimation(
-                  child: GestureDetector(
-                    onDoubleTap: (() async {
-                      setState(() {
-                        isImportant = !note.isImportant;
-                      });
-                      final nt = note.copy(
-                        isImportant: isImportant,
-                      );
-                      await NotesDatabase.instance.update(nt);
-                      refreshNoteBooks();
-                    }),
-                    onTap: () async {
-                      await Navigator.of(context).push(MaterialPageRoute(
-                        builder: (context) => NoteDetailPage(noteId: note.id!),
-                      ));
-                      refreshNoteBooks();
-                    },
-                    child: NoteCardWidget(note: note, index: index),
+              return AnimationConfiguration.staggeredGrid(
+                position: index,
+                duration: const Duration(milliseconds: 375),
+                columnCount: 2,
+                child: ScaleAnimation(
+                  child: FadeInAnimation(
+                    child: GestureDetector(
+                      onLongPress: (() {
+                        setState(() {
+                          noteModifHeigher = 50;
+                          _selectedNote = note;
+                          // modifTabIsClosed = !modifTabIsClosed;
+                          normalTimer.start();
+                        });
+                      }),
+                      onDoubleTap: (() async {
+                        setState(() {
+                          isImportant = !note.isImportant;
+                        });
+                        final nt = note.copy(
+                          isImportant: isImportant,
+                        );
+                        await NotesDatabase.instance.update(nt);
+                        refreshNoteBooks();
+                      }),
+                      onTap: () async {
+                        await Navigator.of(context).push(MaterialPageRoute(
+                          builder: (context) =>
+                              NoteDetailPage(noteId: note.id!),
+                        ));
+                        refreshNoteBooks();
+                      },
+                      child: NoteCardWidget(note: note, index: index),
+                    ),
                   ),
                 ),
-              ),
-            );
-          },
+              );
+            },
+          ),
         ),
       ),
     );

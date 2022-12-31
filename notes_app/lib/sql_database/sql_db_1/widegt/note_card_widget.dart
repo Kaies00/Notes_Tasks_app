@@ -50,7 +50,7 @@ class NoteCardWidget extends StatelessWidget {
                   Icons.star,
                   size: 20,
                   color: note.isImportant ? Colors.amber : Colors.grey.shade300,
-                  shadows: <Shadow>[
+                  shadows: const <Shadow>[
                     Shadow(
                       blurRadius: 5.0,
                       color: Colors.white,
@@ -68,7 +68,7 @@ class NoteCardWidget extends StatelessWidget {
             Text(
               note.title,
               style: GoogleFonts.courgette(
-                color: Color(0xff701B71),
+                color: const Color(0xff701B71),
                 fontSize: 18,
                 fontWeight: FontWeight.bold,
               ),
@@ -79,7 +79,7 @@ class NoteCardWidget extends StatelessWidget {
               maxLines: minHeight == 100 ? 2 : 4,
               overflow: TextOverflow.ellipsis,
               style: GoogleFonts.courgette(
-                  color: Color.fromARGB(255, 62, 4, 71),
+                  color: const Color.fromARGB(255, 62, 4, 71),
                   fontSize: 15,
                   fontWeight: FontWeight.normal),
             ),
