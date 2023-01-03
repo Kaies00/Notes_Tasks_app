@@ -11,3 +11,12 @@ Color backgroundColor = const Color(0xffEE9DC4);
 const Color pinkColor = Color(0xffEE9DC4);
 const Color plumColor = Color(0xff701B71);
 const Color antiFlashWhite = Color(0xffF2EDEA);
+
+final lightColors = [
+  Colors.amber.shade300,
+  Colors.lightGreen.shade300,
+  Colors.lightBlue.shade300,
+  Colors.orange.shade300,
+  Colors.pinkAccent.shade100,
+  Colors.tealAccent.shade100
+];

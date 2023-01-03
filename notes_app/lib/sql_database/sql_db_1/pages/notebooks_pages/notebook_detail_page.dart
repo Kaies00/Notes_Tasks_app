@@ -1,5 +1,6 @@
 import 'package:automatic_animated_list/automatic_animated_list.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
@@ -34,12 +35,6 @@ class _NoteBookDetailPageState extends State<NoteBookDetailPage> {
   bool _isListView = true;
   bool isImportant = true;
 
-  @override
-  void initState() {
-    super.initState();
-    refresh();
-  }
-
   Future refresh() async {
     setState(() => isLoading = true);
     noteBook = await NotesDatabase.instance.readNoteBook(widget.notebookId);
@@ -52,6 +47,14 @@ class _NoteBookDetailPageState extends State<NoteBookDetailPage> {
       }
     }
     setState(() => isLoading = false);
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    SystemChrome.setEnabledSystemUIMode(SystemUiMode.manual,
+        overlays: [SystemUiOverlay.top, SystemUiOverlay.bottom]);
+    refresh();
   }
 
   @override
@@ -224,68 +227,67 @@ class _NoteBookDetailPageState extends State<NoteBookDetailPage> {
       icon: const Icon(FontAwesomeIcons.ellipsisVertical),
       onPressed: () async {
         showModalBottomSheet(
-            isDismissible: true,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(10.0),
-            ),
-            enableDrag: true,
-            context: ctx,
-            builder: (ctx) {
-              return FractionallySizedBox(
-                heightFactor: 0.4,
-                child: Column(
-                  children: [
-                    ListTile(
-                      leading:
-                          const Icon(Icons.edit_outlined, color: pinkColor),
-                      title: const Text(
-                        "Edit",
-                        style: TextStyle(color: pinkColor),
-                      ),
-                      onTap: () async {
-                        if (isLoading) return;
+          isDismissible: true,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(10.0),
+          ),
+          enableDrag: true,
+          context: ctx,
+          builder: (ctx) {
+            return FractionallySizedBox(
+              heightFactor: 0.4,
+              child: Column(
+                children: [
+                  ListTile(
+                    leading: const Icon(Icons.edit_outlined, color: pinkColor),
+                    title: const Text(
+                      "Edit",
+                      style: TextStyle(color: pinkColor),
+                    ),
+                    onTap: () async {
+                      if (isLoading) return;
 
-                        await Navigator.of(context).push(MaterialPageRoute(
-                          builder: (ctx) =>
-                              AddEditNoteBookPage(noteBook: noteBook),
-                        ));
+                      await Navigator.of(context).push(MaterialPageRoute(
+                        builder: (ctx) =>
+                            AddEditNoteBookPage(noteBook: noteBook),
+                      ));
 
-                        refresh();
-                      },
+                      refresh();
+                    },
+                  ),
+                  ListTile(
+                    leading: const Icon(Icons.delete, color: pinkColor),
+                    title: const Text(
+                      "Delete",
+                      style: TextStyle(color: pinkColor),
                     ),
-                    ListTile(
-                      leading: const Icon(Icons.delete, color: pinkColor),
-                      title: const Text(
-                        "Delete",
-                        style: TextStyle(color: pinkColor),
-                      ),
-                      onTap: () async {
-                        await NotesDatabase.instance
-                            .deleteNoteBook(widget.notebookId);
-                        await Navigator.of(ctx)
-                            .pushReplacement(MaterialPageRoute(
-                          builder: (ctx) => NoteBooksPages(),
-                        ));
-                        Navigator.of(ctx).pop();
-                      },
+                    onTap: () async {
+                      await NotesDatabase.instance
+                          .deleteNoteBook(widget.notebookId);
+                      await Navigator.of(ctx).pushReplacement(MaterialPageRoute(
+                        builder: (ctx) => NoteBooksPages(),
+                      ));
+                      Navigator.of(ctx).pop();
+                    },
+                  ),
+                  ListTile(
+                    leading: Icon(Icons.list, color: pinkColor),
+                    title: Text(
+                      _isListView ? "Grid View" : "List View",
+                      style: TextStyle(color: pinkColor),
                     ),
-                    ListTile(
-                      leading: Icon(Icons.list, color: pinkColor),
-                      title: Text(
-                        _isListView ? "Grid View" : "List View",
-                        style: TextStyle(color: pinkColor),
-                      ),
-                      onTap: () async {
-                        setState(() {
-                          _isListView = !_isListView;
-                        });
-                        Navigator.of(ctx).pop();
-                      },
-                    ),
-                  ],
-                ),
-              );
-            });
+                    onTap: () async {
+                      setState(() {
+                        _isListView = !_isListView;
+                      });
+                      Navigator.of(ctx).pop();
+                    },
+                  ),
+                ],
+              ),
+            );
+          },
+        );
       },
     );
   }

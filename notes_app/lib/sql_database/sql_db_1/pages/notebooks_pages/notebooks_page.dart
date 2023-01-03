@@ -1,10 +1,14 @@
+import 'package:animated_text_kit/animated_text_kit.dart';
 import 'package:automatic_animated_list/automatic_animated_list.dart';
 import 'package:complete_timer/complete_timer.dart';
+import 'package:dotted_line/dotted_line.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_staggered_animations/flutter_staggered_animations.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
+import 'package:lottie/lottie.dart';
 import 'package:notes_app/values.dart';
 import 'package:staggered_grid_view_flutter/widgets/staggered_grid_view.dart';
 import 'package:staggered_grid_view_flutter/widgets/staggered_tile.dart';
@@ -28,6 +32,7 @@ class NoteBooksPages extends StatefulWidget {
 class _NoteBooksPagesState extends State<NoteBooksPages>
     with TickerProviderStateMixin {
   late TabController _tabController;
+  late AnimationController _controllerCheckMarker;
   late List<NoteBook> notebooks;
   late List<Note> notes;
   late List<Note> sortedNotes;
@@ -35,17 +40,20 @@ class _NoteBooksPagesState extends State<NoteBooksPages>
   double h = 0;
   double noteModifHeigher = 0;
   bool isLoading = false;
-  bool isListView = true;
+  bool isListView = false;
   bool isImportant = true;
   bool modifTabIsClosed = true;
   bool noteEditMode = false;
+  bool filterTask = true;
+  bool filterNote = true;
   late CompleteTimer normalTimer;
 
   @override
   void initState() {
     super.initState();
+    _controllerCheckMarker = AnimationController(vsync: this);
     SystemChrome.setEnabledSystemUIMode(SystemUiMode.manual,
-        overlays: [SystemUiOverlay.top]);
+        overlays: [SystemUiOverlay.top, SystemUiOverlay.bottom]);
     _tabController = TabController(vsync: this, length: 2);
     refreshNoteBooks();
     _selectedNote = Note(
@@ -59,7 +67,7 @@ class _NoteBooksPagesState extends State<NoteBooksPages>
         createdTime: DateTime.now());
     normalTimer = CompleteTimer(
       // must a non-negative Duration.
-      duration: const Duration(seconds: 3),
+      duration: const Duration(seconds: 2),
       // If periodic sets true
       // The callback is invoked repeatedly with duration intervals until
       // canceled with the cancel function.
@@ -84,6 +92,7 @@ class _NoteBooksPagesState extends State<NoteBooksPages>
     NotesDatabase.instance.close();
     _tabController.dispose();
     normalTimer.cancel();
+    _controllerCheckMarker.dispose();
     super.dispose();
   }
 
@@ -96,6 +105,13 @@ class _NoteBooksPagesState extends State<NoteBooksPages>
         notes = rearrange(notes[i]);
       }
     }
+    if (filterTask && !filterNote) {
+      notes = notes.where((element) => element.isTask == true).toList();
+    }
+    if (!filterTask && filterNote) {
+      notes = notes.where((element) => element.isTask == false).toList();
+    }
+
     // sortedNotes = notes.sort((a, b) => a.number.compareTo(b.number));
     setState(() => isLoading = false);
   }
@@ -112,10 +128,7 @@ class _NoteBooksPagesState extends State<NoteBooksPages>
     return Scaffold(
       backgroundColor: accentPinkColor,
       appBar: AppBar(
-        leading: const Icon(
-          Icons.menu,
-          color: plumColor,
-        ),
+        leading: bottomPageMenu(context),
         backgroundColor: accentPinkColor,
         elevation: 0,
         bottom: TabBar(
@@ -305,6 +318,37 @@ class _NoteBooksPagesState extends State<NoteBooksPages>
                     // if (!modifTabIsClosed || noteModifHeigher > 0)
                     IconButton(
                         icon: const Icon(
+                          Icons.description_sharp,
+                          color: pinkColor,
+                        ),
+                        onPressed: () async {
+                          setState(() {
+                            noteModifHeigher = 0;
+                          });
+                          if (isLoading) return;
+                          await Navigator.of(context).push(
+                            MaterialPageRoute(
+                              builder: (context) =>
+                                  NoteDetailPage(noteId: _selectedNote.id!),
+                            ),
+                          );
+                          refreshNoteBooks();
+                        }),
+                    // onTap: () async {
+                    //   await Navigator.of(context).push(
+                    //     MaterialPageRoute(
+                    //       builder: (context) =>
+                    //           NoteDetailPage(noteId: note.id!),
+                    //     ),
+                    //   );
+                    //   refreshNoteBooks();
+                    // },
+                    const VerticalDivider(
+                      indent: 7,
+                      endIndent: 7,
+                    ),
+                    IconButton(
+                        icon: const Icon(
                           Icons.edit_outlined,
                           color: pinkColor,
                         ),
@@ -319,15 +363,51 @@ class _NoteBooksPagesState extends State<NoteBooksPages>
                           ));
                           refreshNoteBooks();
                         }),
-                    VerticalDivider(),
+                    const VerticalDivider(
+                      indent: 7,
+                      endIndent: 7,
+                    ),
                     // if (!modifTabIsClosed || noteModifHeigher > 0)
                     IconButton(
-                      icon: const Icon(
-                        Icons.star_border_outlined,
-                        color: pinkColor,
-                      ),
+                      icon: _selectedNote.isImportant
+                          ? const Icon(
+                              Icons.star,
+                              color: Colors.amber,
+                            )
+                          : const Icon(
+                              Icons.star_border_outlined,
+                              color: pinkColor,
+                            ),
                       onPressed: (() async {
+                        await showDialog<void>(
+                          context: context,
+                          barrierDismissible: true,
+                          builder: (BuildContext context) {
+                            return AlertDialog(
+                              elevation: 0,
+                              backgroundColor: Colors.transparent,
+                              content: Container(
+                                color: Colors.transparent,
+                                child: Lottie.asset(
+                                  _selectedNote.isImportant
+                                      ? "assets/animations/dismiss.json"
+                                      : "assets/animations/star.json",
+                                  controller: _controllerCheckMarker,
+                                  onLoaded: (composition) {
+                                    // Configure the AnimationController with the duration of the
+                                    // Lottie file and start the animation.
+                                    _controllerCheckMarker
+                                      ..duration = composition.duration
+                                      ..forward().whenComplete(
+                                          () => Navigator.of(context).pop());
+                                  },
+                                ),
+                              ),
+                            );
+                          },
+                        );
                         setState(() {
+                          _controllerCheckMarker.reverse();
                           noteModifHeigher = 0;
                           isImportant = !_selectedNote.isImportant;
                         });
@@ -338,26 +418,65 @@ class _NoteBooksPagesState extends State<NoteBooksPages>
                         refreshNoteBooks();
                       }),
                     ),
-                    if (_selectedNote.isTask) VerticalDivider(),
+                    if (_selectedNote.isTask)
+                      const VerticalDivider(
+                        indent: 7,
+                        endIndent: 7,
+                      ),
                     if (_selectedNote.isTask)
                       IconButton(
-                        icon: const Icon(
-                          Icons.check,
-                          color: pinkColor,
-                        ),
+                        icon: _selectedNote.isCompleted
+                            ? Icon(
+                                Icons.check_box,
+                                color: Colors.green.withOpacity(0.8),
+                              )
+                            : const Icon(
+                                Icons.check,
+                                color: pinkColor,
+                              ),
                         onPressed: (() async {
+                          await showDialog<void>(
+                            barrierColor: Colors.transparent,
+                            context: context,
+                            barrierDismissible: true,
+                            builder: (BuildContext context) {
+                              return AlertDialog(
+                                elevation: 0,
+                                backgroundColor: Colors.transparent,
+                                content: Container(
+                                  color: Colors.transparent,
+                                  child: Lottie.asset(
+                                    _selectedNote.isCompleted
+                                        ? "assets/animations/dismiss.json"
+                                        : "assets/animations/checkmark.json",
+                                    controller: _controllerCheckMarker,
+                                    onLoaded: (composition) {
+                                      _controllerCheckMarker
+                                        ..duration = composition.duration
+                                        ..forward().whenComplete(
+                                            () => Navigator.of(context).pop());
+                                    },
+                                  ),
+                                ),
+                              );
+                            },
+                          );
                           setState(() {
+                            _controllerCheckMarker.reverse();
                             noteModifHeigher = 0;
-                            isImportant = !_selectedNote.isImportant;
+                            isImportant = !_selectedNote.isCompleted;
                           });
                           final nt = _selectedNote.copy(
-                            isImportant: isImportant,
+                            isCompleted: isImportant,
                           );
                           await NotesDatabase.instance.update(nt);
                           refreshNoteBooks();
                         }),
                       ),
-                    VerticalDivider(),
+                    const VerticalDivider(
+                      indent: 7,
+                      endIndent: 7,
+                    ),
                     // if (!modifTabIsClosed || noteModifHeigher > 0)
                     IconButton(
                       icon: const Icon(
@@ -365,7 +484,34 @@ class _NoteBooksPagesState extends State<NoteBooksPages>
                         color: pinkColor,
                       ),
                       onPressed: () async {
+                        await showDialog<void>(
+                          barrierColor: Colors.transparent,
+                          context: context,
+                          barrierDismissible: true,
+                          builder: (BuildContext context) {
+                            return AlertDialog(
+                              elevation: 0,
+                              backgroundColor: Colors.transparent,
+                              content: Container(
+                                color: Colors.transparent,
+                                child: Lottie.asset(
+                                  "assets/animations/delete.json",
+                                  controller: _controllerCheckMarker,
+                                  onLoaded: (composition) {
+                                    // Configure the AnimationController with the duration of the
+                                    // Lottie file and start the animation.
+                                    _controllerCheckMarker
+                                      ..duration = composition.duration
+                                      ..forward().whenComplete(
+                                          () => Navigator.of(context).pop());
+                                  },
+                                ),
+                              ),
+                            );
+                          },
+                        );
                         setState(() {
+                          _controllerCheckMarker.reverse();
                           noteModifHeigher = 0;
                         });
                         await NotesDatabase.instance.delete(_selectedNote.id!);
@@ -435,7 +581,7 @@ class _NoteBooksPagesState extends State<NoteBooksPages>
         setState(() {
           h = 50;
           normalTimer.start();
-          refreshNoteBooks();
+          // refreshNoteBooks();
           // _countdownTimerController.isRunning;
         });
       },
@@ -444,24 +590,35 @@ class _NoteBooksPagesState extends State<NoteBooksPages>
           itemBuilder: (context, index) {
             final note = notes[index];
             return GestureDetector(
-              onDoubleTap: (() async {
+              // onDoubleTap: (() async {
+              //   setState(() {
+              //     isImportant = !note.isImportant;
+              //   });
+              //   final nt = note.copy(
+              //     isImportant: isImportant,
+              //   );
+              //   await NotesDatabase.instance.update(nt);
+              //   refreshNoteBooks();
+              // }),
+              // onTap: () async {
+              //   await Navigator.of(context).push(
+              //     MaterialPageRoute(
+              //       builder: (context) => NoteDetailPage(noteId: note.id!),
+              //     ),
+              //   );
+              //   refreshNoteBooks();
+              // },
+              onTap: (() {
                 setState(() {
-                  isImportant = !note.isImportant;
+                  noteModifHeigher == 50
+                      ? noteModifHeigher = 0
+                      : noteModifHeigher = 50;
+                  _selectedNote = note;
+                  noteEditMode = !noteEditMode;
+                  // modifTabIsClosed = !modifTabIsClosed;
+                  normalTimer.start();
                 });
-                final nt = note.copy(
-                  isImportant: isImportant,
-                );
-                await NotesDatabase.instance.update(nt);
-                refreshNoteBooks();
               }),
-              onTap: () async {
-                await Navigator.of(context).push(
-                  MaterialPageRoute(
-                    builder: (context) => NoteDetailPage(noteId: note.id!),
-                  ),
-                );
-                refreshNoteBooks();
-              },
               child: Container(
                 margin: const EdgeInsets.all(5),
                 padding: const EdgeInsets.all(15),
@@ -485,7 +642,7 @@ class _NoteBooksPagesState extends State<NoteBooksPages>
                         )
                       ],
                     ),
-                    SizedBox(height: 4),
+                    const SizedBox(height: 4),
                     Text(
                       note.title,
                       style: GoogleFonts.courgette(
@@ -516,9 +673,9 @@ class _NoteBooksPagesState extends State<NoteBooksPages>
     return RefreshIndicator(
       onRefresh: () async {
         setState(() {
-          h = 50;
-          normalTimer.start();
-          refreshNoteBooks();
+          // h = 50;
+          // normalTimer.start();
+          // refreshNoteBooks();
           // _countdownTimerController.isRunning;
         });
       },
@@ -540,7 +697,7 @@ class _NoteBooksPagesState extends State<NoteBooksPages>
                   reverseCurve: Curves.easeIn,
                 ),
                 child: GestureDetector(
-                  onLongPress: (() {
+                  onTap: (() {
                     setState(() {
                       noteModifHeigher == 50
                           ? noteModifHeigher = 0
@@ -551,29 +708,29 @@ class _NoteBooksPagesState extends State<NoteBooksPages>
                       normalTimer.start();
                     });
                   }),
-                  onDoubleTap: () async {
-                    setState(() {
-                      isImportant = !note.isImportant;
-                    });
-                    final nt = note.copy(
-                      isImportant: isImportant,
-                    );
-                    await NotesDatabase.instance.update(nt);
-                    refreshNoteBooks();
-                  },
+                  // onDoubleTap: () async {
+                  //   setState(() {
+                  //     isImportant = !note.isImportant;
+                  //   });
+                  //   final nt = note.copy(
+                  //     isImportant: isImportant,
+                  //   );
+                  //   await NotesDatabase.instance.update(nt);
+                  //   refreshNoteBooks();
+                  // },
                   child: Stack(
                     alignment: AlignmentDirectional.topEnd,
                     children: [
                       GestureDetector(
-                        onTap: () async {
-                          await Navigator.of(context).push(
-                            MaterialPageRoute(
-                              builder: (context) =>
-                                  NoteDetailPage(noteId: note.id!),
-                            ),
-                          );
-                          refreshNoteBooks();
-                        },
+                        // onTap: () async {
+                        //   await Navigator.of(context).push(
+                        //     MaterialPageRoute(
+                        //       builder: (context) =>
+                        //           NoteDetailPage(noteId: note.id!),
+                        //     ),
+                        //   );
+                        //   refreshNoteBooks();
+                        // },
                         child: Container(
                           margin: const EdgeInsets.all(5),
                           padding: const EdgeInsets.all(15),
@@ -581,16 +738,43 @@ class _NoteBooksPagesState extends State<NoteBooksPages>
                           decoration: BoxDecoration(
                             color: Colors.white,
                             borderRadius: BorderRadius.circular(5),
-                            // border: _selectedNote.id == note.id && noteEditMode
-                            //     ? Border.all(color: Colors.red)
-                            //     : null,
+                            border: _selectedNote.id == note.id && noteEditMode
+                                ? Border.all(color: Colors.red)
+                                : null,
                           ),
                           height: size.height / 7,
                           child: Column(
                             mainAxisAlignment: MainAxisAlignment.start,
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Text(DateFormat.yMMMd().format(note.createdTime)),
+                              Row(
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceBetween,
+                                children: [
+                                  Text(DateFormat.yMMMd()
+                                      .format(note.createdTime)),
+                                  GestureDetector(
+                                    onTap: () async {
+                                      setState(() {
+                                        isImportant = !note.isImportant;
+                                      });
+                                      final nt = note.copy(
+                                        isImportant: isImportant,
+                                      );
+                                      await NotesDatabase.instance.update(nt);
+                                      refreshNoteBooks();
+                                    },
+                                    child: Icon(
+                                      note.isImportant
+                                          ? Icons.star
+                                          : Icons.star_border_outlined,
+                                      color: note.isImportant
+                                          ? Colors.amber
+                                          : Colors.pink.withOpacity(0.2),
+                                    ),
+                                  ),
+                                ],
+                              ),
                               const SizedBox(height: 4),
                               Row(
                                 mainAxisAlignment:
@@ -602,16 +786,15 @@ class _NoteBooksPagesState extends State<NoteBooksPages>
                                       color: const Color(0xff701B71),
                                       fontSize: 20,
                                       fontWeight: FontWeight.bold,
-                                      decoration: note.isCompleted
-                                          ? TextDecoration.lineThrough
-                                          : TextDecoration.none,
+                                      decoration:
+                                          note.isTask && note.isCompleted
+                                              ? TextDecoration.lineThrough
+                                              : TextDecoration.none,
                                     ),
                                   ),
                                   note.isTask
                                       ? note.isCompleted
-                                          ? Icon(
-                                              Icons
-                                                  .check_box_outline_blank_rounded,
+                                          ? Icon(Icons.check_box,
                                               color:
                                                   Colors.green.withOpacity(0.8))
                                           : Icon(
@@ -637,29 +820,6 @@ class _NoteBooksPagesState extends State<NoteBooksPages>
                           ),
                         ),
                       ),
-                      GestureDetector(
-                        onTap: () async {
-                          setState(() {
-                            isImportant = !note.isImportant;
-                          });
-                          final nt = note.copy(
-                            isImportant: isImportant,
-                          );
-                          await NotesDatabase.instance.update(nt);
-                          refreshNoteBooks();
-                        },
-                        child: Container(
-                          height: 70,
-                          width: 70,
-                          // color: Colors.red,
-                          child: Icon(
-                            Icons.star,
-                            color: note.isImportant
-                                ? Colors.amber
-                                : Colors.grey.shade100,
-                          ),
-                        ),
-                      )
                     ],
                   ),
                 ),
@@ -717,11 +877,11 @@ class _NoteBooksPagesState extends State<NoteBooksPages>
       color: accentPinkColor,
       child: RefreshIndicator(
         onRefresh: () async {
-          setState(() {
-            h = 50;
-            normalTimer.start();
-            refreshNoteBooks();
-          });
+          // setState(() {
+          //   h = 50;
+          //   normalTimer.start();
+          //   // refreshNoteBooks();
+          // });
         },
         child: AnimationLimiter(
           child: StaggeredGridView.countBuilder(
@@ -733,7 +893,9 @@ class _NoteBooksPagesState extends State<NoteBooksPages>
             crossAxisSpacing: 4,
             itemBuilder: (context, index) {
               final note = notes[index];
-
+              final color = lightColors[index % lightColors.length];
+              final time = DateFormat.yMMMd().format(note.createdTime);
+              final minHeight = getMinHeight(index);
               return AnimationConfiguration.staggeredGrid(
                 position: index,
                 duration: const Duration(milliseconds: 375),
@@ -741,32 +903,105 @@ class _NoteBooksPagesState extends State<NoteBooksPages>
                 child: ScaleAnimation(
                   child: FadeInAnimation(
                     child: GestureDetector(
-                      onLongPress: (() {
+                      onTap: (() {
                         setState(() {
-                          noteModifHeigher = 50;
+                          noteModifHeigher == 50
+                              ? noteModifHeigher = 0
+                              : noteModifHeigher = 50;
                           _selectedNote = note;
+                          noteEditMode = !noteEditMode;
                           // modifTabIsClosed = !modifTabIsClosed;
                           normalTimer.start();
                         });
                       }),
-                      onDoubleTap: (() async {
-                        setState(() {
-                          isImportant = !note.isImportant;
-                        });
-                        final nt = note.copy(
-                          isImportant: isImportant,
-                        );
-                        await NotesDatabase.instance.update(nt);
-                        refreshNoteBooks();
-                      }),
-                      onTap: () async {
-                        await Navigator.of(context).push(MaterialPageRoute(
-                          builder: (context) =>
-                              NoteDetailPage(noteId: note.id!),
-                        ));
-                        refreshNoteBooks();
-                      },
-                      child: NoteCardWidget(note: note, index: index),
+                      // child: NoteCardWidget(note: note, index: index),
+                      child: Card(
+                        color: color,
+                        child: Container(
+                          constraints: BoxConstraints(minHeight: minHeight),
+                          padding: const EdgeInsets.all(8),
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(5),
+                            border: _selectedNote.id == note.id && noteEditMode
+                                ? Border.all(color: Colors.red)
+                                : null,
+                          ),
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Row(
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceBetween,
+                                children: [
+                                  Text(
+                                    time,
+                                    style:
+                                        TextStyle(color: Colors.grey.shade700),
+                                  ),
+                                  Icon(
+                                    Icons.star,
+                                    size: 20,
+                                    color: note.isImportant
+                                        ? Colors.amber
+                                        : Colors.grey.shade300,
+                                    shadows: const <Shadow>[
+                                      Shadow(
+                                        blurRadius: 5.0,
+                                        color: Colors.white,
+                                      ),
+                                      Shadow(
+                                        offset: Offset(0.0, 0.0),
+                                        blurRadius: 8.0,
+                                        color: Colors.white,
+                                      ),
+                                    ],
+                                  )
+                                ],
+                              ),
+                              const SizedBox(height: 4),
+                              Row(
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceBetween,
+                                children: [
+                                  Text(
+                                    note.title,
+                                    style: GoogleFonts.courgette(
+                                      color: const Color(0xff701B71),
+                                      fontSize: 18,
+                                      fontWeight: FontWeight.bold,
+                                      decoration: note.isCompleted
+                                          ? TextDecoration.lineThrough
+                                          : TextDecoration.none,
+                                    ),
+                                  ),
+                                  note.isTask
+                                      ? note.isCompleted
+                                          ? Icon(Icons.check_box,
+                                              color:
+                                                  Colors.green.withOpacity(0.8))
+                                          : Icon(
+                                              Icons.check_box_outline_blank,
+                                              color:
+                                                  Colors.pink.withOpacity(0.2),
+                                            )
+                                      : Container(),
+                                ],
+                              ),
+                              const SizedBox(height: 4),
+                              Text(
+                                note.description,
+                                maxLines: minHeight == 100 ? 2 : 4,
+                                overflow: TextOverflow.ellipsis,
+                                style: GoogleFonts.courgette(
+                                    color: const Color.fromARGB(255, 62, 4, 71),
+                                    fontSize: 15,
+                                    fontWeight: FontWeight.normal),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
                     ),
                   ),
                 ),
@@ -776,5 +1011,243 @@ class _NoteBooksPagesState extends State<NoteBooksPages>
         ),
       ),
     );
+  }
+
+  Widget bottomPageMenu(ctx) {
+    return IconButton(
+      icon: const Icon(
+        Icons.menu_outlined,
+        color: plumColor,
+      ),
+      onPressed: () async {
+        showModalBottomSheet(
+          isDismissible: true,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(10.0),
+          ),
+          enableDrag: true,
+          context: ctx,
+          builder: (ctx) {
+            return StatefulBuilder(
+              builder: (BuildContext context,
+                  void Function(void Function()) setModalState) {
+                return FractionallySizedBox(
+                  heightFactor: 1,
+                  child: Column(
+                    children: [
+                      Container(
+                        margin: EdgeInsets.all(5.0),
+                        height: 5,
+                        width: 100,
+                        decoration: BoxDecoration(
+                            color: Colors.grey.withOpacity(0.2),
+                            borderRadius: BorderRadius.circular(20)),
+                      ),
+                      const SizedBox(height: 10),
+                      Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        mainAxisAlignment: MainAxisAlignment.spaceAround,
+                        children: [
+                          Stack(children: [
+                            Container(
+                              height: 230,
+                              width: 300,
+                              decoration: BoxDecoration(
+                                  color: accentPinkColor,
+                                  borderRadius: BorderRadius.circular(10)),
+                              child: Lottie.asset(
+                                "assets/animations/helpgrow.json",
+                              ),
+                            ),
+                            AnimatedTextKit(
+                                isRepeatingAnimation: false,
+                                animatedTexts: [
+                                  TyperAnimatedText(
+                                      'Don\'t Forget Donation !! \nYour Support Help us\nKeep going',
+                                      speed: const Duration(milliseconds: 100),
+                                      textStyle: const TextStyle(
+                                        color: plumColor,
+                                        fontFamily: "Valid_Harmony",
+                                        fontSize: 25,
+                                      )),
+                                ]),
+                          ]),
+                          Container(
+                            height: 230,
+                            // constraints: BoxConstraints.expand(),
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Container(
+                                  height: 50,
+                                  width: 50,
+                                  decoration: BoxDecoration(
+                                      borderRadius: BorderRadius.circular(10),
+                                      color: Colors.white,
+                                      border: Border.all(color: pinkColor),
+                                      image: const DecorationImage(
+                                          image: AssetImage(
+                                              "assets/images/paypal.png"))),
+                                ),
+                                Container(
+                                  decoration: BoxDecoration(
+                                      borderRadius: BorderRadius.circular(10),
+                                      border: Border.all(color: pinkColor),
+                                      color: Colors.white,
+                                      image: const DecorationImage(
+                                        image: AssetImage(
+                                            "assets/images/coffee.png"),
+                                        fit: BoxFit.fill,
+                                      )),
+                                  height: 50,
+                                  width: 50,
+                                ),
+                                Container(
+                                  padding: EdgeInsets.all(5),
+                                  decoration: BoxDecoration(
+                                    borderRadius: BorderRadius.circular(10),
+                                    border: Border.all(color: pinkColor),
+                                    color: Colors.white,
+                                  ),
+                                  height: 50,
+                                  width: 50,
+                                  child: const Image(
+                                    image:
+                                        AssetImage("assets/images/patreon.png"),
+                                  ),
+                                ),
+                                Container(
+                                  padding: EdgeInsets.all(5),
+                                  decoration: BoxDecoration(
+                                    borderRadius: BorderRadius.circular(10),
+                                    border: Border.all(color: pinkColor),
+                                    color: Colors.white,
+                                  ),
+                                  height: 50,
+                                  width: 50,
+                                  child: const Image(
+                                      image:
+                                          AssetImage("assets/images/kofi.png")),
+                                ),
+                              ],
+                            ),
+                          )
+                        ],
+                      ),
+                      const SizedBox(height: 10),
+                      const DottedLine(
+                        dashColor: accentPinkColor,
+                      ),
+                      ListTile(
+                        leading: const Icon(Icons.task, color: pinkColor),
+                        trailing: builsSwitcher(filterTask),
+                        title: const Text(
+                          "Tasks",
+                          style: TextStyle(color: pinkColor),
+                        ),
+                        onTap: () async {
+                          if (isLoading) return;
+                          setModalState(() {
+                            filterTask = !filterTask;
+                            !filterTask && !filterNote
+                                ? filterNote = !filterNote
+                                : filterNote = filterNote;
+                          });
+                          refreshNoteBooks();
+                          // Navigator.of(ctx).pop();
+                        },
+                      ),
+                      ListTile(
+                        leading: const Icon(Icons.notes, color: pinkColor),
+                        trailing: builsSwitcher(filterNote),
+                        title: const Text(
+                          "Notes",
+                          style: TextStyle(color: pinkColor),
+                        ),
+                        onTap: () async {
+                          setModalState(() {
+                            filterNote = !filterNote;
+                            !filterTask && !filterNote
+                                ? filterTask = !filterTask
+                                : filterTask = filterTask;
+                          });
+                          refreshNoteBooks();
+                        },
+                      ),
+                      ListTile(
+                        leading: isListView
+                            ? const Icon(Icons.dashboard, color: pinkColor)
+                            : const Icon(Icons.list, color: pinkColor),
+                        title: Text(
+                          isListView ? "Grid View" : "List View",
+                          style: const TextStyle(color: pinkColor),
+                        ),
+                        onTap: () async {
+                          setState(() {
+                            isListView = !isListView;
+                          });
+                        },
+                      ),
+                    ],
+                  ),
+                );
+              },
+            );
+          },
+        );
+      },
+    );
+  }
+
+  Widget builsSwitcher(bool filterActivation) {
+    print(filterActivation);
+    double wd = 50;
+    double ht = 20;
+    return Stack(alignment: AlignmentDirectional.centerStart, children: [
+      Container(
+        height: ht,
+        width: wd,
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(5),
+          color:
+              filterActivation ? accentPinkColor : Colors.grey.withOpacity(0.5),
+        ),
+      ),
+      TweenAnimationBuilder(
+        duration: const Duration(milliseconds: 300),
+        tween: Tween<Offset>(
+            begin: const Offset(0, 0),
+            end: Offset(filterActivation ? (wd / 2) : 0, 0.0)),
+        builder: (BuildContext context, Offset value, Widget? child) {
+          Size s = MediaQuery.of(context).size;
+          return Transform.translate(
+            offset: value,
+            child: Container(
+              height: ht,
+              width: (wd / 2),
+              decoration: BoxDecoration(
+                color: pinkColor,
+                borderRadius: BorderRadius.circular(5),
+              ),
+            ),
+          );
+        },
+      ),
+    ]);
+  }
+
+  double getMinHeight(int index) {
+    switch (index % 4) {
+      case 0:
+        return 100;
+      case 1:
+        return 150;
+      case 2:
+        return 150;
+      case 3:
+        return 100;
+      default:
+        return 100;
+    }
   }
 }

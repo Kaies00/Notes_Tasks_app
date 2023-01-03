@@ -45,6 +45,10 @@ dependencies:
   complete_timer: ^1.0.0
   automatic_animated_list: ^1.1.0
   flutter_staggered_animations: ^1.1.1
+  lottie: ^1.4.2
+  dotted_line: ^3.1.0
+  url_launcher: ^5.2.7
+  animated_text_kit: ^4.2.2
 
 dev_dependencies:
   flutter_test:
@@ -89,6 +93,7 @@ flutter:
   assets:
     - assets/images/
     - assets/fonts/
+    - assets/animations/
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/assets-and-images/#resolution-aware
