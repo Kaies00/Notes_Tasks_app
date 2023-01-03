@@ -13,7 +13,6 @@ import 'package:notes_app/values.dart';
 import 'package:staggered_grid_view_flutter/widgets/staggered_grid_view.dart';
 import 'package:staggered_grid_view_flutter/widgets/staggered_tile.dart';
 import 'package:notes_app/values.dart';
-
 import '../../db/notes_database.dart';
 import '../../model/note.dart';
 import '../../model/notebook.dart';
@@ -219,7 +218,7 @@ class _NoteBooksPagesState extends State<NoteBooksPages>
                       ),
                     ),
                   ),
-                  VerticalDivider(),
+                  const VerticalDivider(),
                   InkWell(
                     onTap: () {
                       setState(() {
@@ -737,7 +736,7 @@ class _NoteBooksPagesState extends State<NoteBooksPages>
                           width: double.infinity,
                           decoration: BoxDecoration(
                             color: Colors.white,
-                            borderRadius: BorderRadius.circular(5),
+                            borderRadius: BorderRadius.circular(3),
                             border: _selectedNote.id == note.id && noteEditMode
                                 ? Border.all(color: Colors.red)
                                 : null,
@@ -1078,16 +1077,24 @@ class _NoteBooksPagesState extends State<NoteBooksPages>
                             child: Column(
                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
-                                Container(
-                                  height: 50,
-                                  width: 50,
-                                  decoration: BoxDecoration(
-                                      borderRadius: BorderRadius.circular(10),
-                                      color: Colors.white,
-                                      border: Border.all(color: pinkColor),
-                                      image: const DecorationImage(
-                                          image: AssetImage(
-                                              "assets/images/paypal.png"))),
+                                InkWell(
+                                  onTap: () async {
+                                    // await Navigator.of(context).push(
+                                    //     MaterialPageRoute(
+                                    //         builder: (context) =>
+                                    //             const BrainTree()));
+                                  },
+                                  child: Container(
+                                    height: 50,
+                                    width: 50,
+                                    decoration: BoxDecoration(
+                                        borderRadius: BorderRadius.circular(10),
+                                        color: Colors.white,
+                                        border: Border.all(color: pinkColor),
+                                        image: const DecorationImage(
+                                            image: AssetImage(
+                                                "assets/images/paypal.png"))),
+                                  ),
                                 ),
                                 Container(
                                   decoration: BoxDecoration(
